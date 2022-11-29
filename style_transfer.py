@@ -185,6 +185,7 @@ def run_style_transfer(
 
     print("Optimizing..")
     run = [0]
+    content_scores = []
     while run[0] <= num_steps:
 
         def closure():
@@ -208,6 +209,7 @@ def run_style_transfer(
             loss = style_score + content_score
             loss.backward()
 
+            content_scores.append(content_score.item())
             run[0] += 1
             if run[0] % 50 == 0:
                 print("run {}:".format(run))
@@ -225,17 +227,22 @@ def run_style_transfer(
     with torch.no_grad():
         input_img.clamp_(0, 1)
 
-    return input_img
+    return input_img, content_scores[-1]
 
 
 def create_style_augmented_images(
-    style_img_name, content_img_names, image_dir, output_dir, num_steps=300
+    style_img_name,
+    content_img_names,
+    image_dir,
+    output_dir,
+    num_steps=300,
+    style_weight=1000000,
+    content_weight=1,
 ):
     dataset = ImagingDataset(
         image_dir, start_date="0101", end_date="1231", transform=None
     )
     style_img = get_image(dataset, img_name=style_img_name)
-    os.mkdir(os.path.join(output_dir, style_img_name))
     cnn = (
         models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
         .features.to(device)
@@ -246,7 +253,7 @@ def create_style_augmented_images(
     for content_img_name in content_img_names:
         content_img = get_image(dataset, img_name=content_img_name)
         input_img = content_img.clone()
-        output_img = run_style_transfer(
+        output_img, content_score = run_style_transfer(
             cnn,
             cnn_normalization_mean,
             cnn_normalization_std,
@@ -254,16 +261,19 @@ def create_style_augmented_images(
             style_img,
             input_img,
             num_steps=num_steps,
+            style_weight=style_weight,
+            content_weight=content_weight,
         )
-        output_fp = os.path.join(output_dir, style_img_name, content_img_name + ".jpg")
+        if content_score > 50:
+            output_img = content_img
+        output_fp = os.path.join(output_dir, content_img_name + ".jpg")
         save_image(output_img[0], fp=output_fp)
 
 
 if __name__ == "__main__":
 
     style_img_name = "20200814_clip_16_0703_img_115"
-    content_img_names = ["20210110_clip_28_1230_img_5",
-                        "20200810_clip_11_1452_img_115"]
+    content_img_names = ["20210110_clip_28_1230_img_5", "20200810_clip_11_1452_img_115"]
     create_style_augmented_images(
         style_img_name=style_img_name,
         content_img_names=content_img_names,
