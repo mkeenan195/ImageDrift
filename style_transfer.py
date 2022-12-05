@@ -11,6 +11,8 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from dataloader import ImagingDataset
 import os
+from utils import plot_image_set
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -21,17 +23,17 @@ def get_image(dataset, img_name="202002261456-9of48-f3600"):
     return img
 
 
-def plot_image(img, title=None, output_file="output.jpg"):
-    if len(img.shape) == 4:
-        img = img[0]
-    img = img.permute(1, 2, 0).detach().cpu().numpy()
-    fig, ax = plt.subplots()
-    ax.imshow(img, cmap="gray", vmin=0, vmax=1)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    if title:
-        ax.set_title(title)
-    plt.savefig(output_file)
+# def plot_image(img, title=None, output_file="output.jpg"):
+#     if len(img.shape) == 4:
+#         img = img[0]
+#     img = img.permute(1, 2, 0).detach().cpu().numpy()
+#     fig, ax = plt.subplots()
+#     ax.imshow(img, cmap="gray", vmin=0, vmax=1)
+#     ax.set_xticks([])
+#     ax.set_yticks([])
+#     if title:
+#         ax.set_title(title)
+#     plt.savefig(output_file)
 
 
 class ContentLoss(nn.Module):
@@ -172,6 +174,9 @@ def run_style_transfer(
 ):
     """Run the style transfer."""
     print("Building the style transfer model..")
+    style_img = style_img.to(device)
+    content_img = content_img.to(device)
+    input_img = input_img.to(device)
     model, style_losses, content_losses = get_style_model_and_losses(
         cnn, normalization_mean, normalization_std, style_img, content_img
     )
@@ -251,6 +256,7 @@ def create_style_augmented_images(
     cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406]).to(device)
     cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225]).to(device)
     for content_img_name in content_img_names:
+        print(f"Style: {style_img_name}, Content: {content_img_name}")
         content_img = get_image(dataset, img_name=content_img_name)
         input_img = content_img.clone()
         output_img, content_score = run_style_transfer(
@@ -264,10 +270,14 @@ def create_style_augmented_images(
             style_weight=style_weight,
             content_weight=content_weight,
         )
-        if content_score > 50:
-            output_img = content_img
+        if content_score > 200:
+            output_img = get_image(dataset, img_name=content_img_name)
         output_fp = os.path.join(output_dir, content_img_name + ".jpg")
         save_image(output_img[0], fp=output_fp)
+        renamed_dir = os.path.dirname(image_dir)
+        month_dir = os.path.dirname(output_dir)
+        plot_image_set(renamed_dir, month_dir, content_img_name, style_img_name, content_img_name)
+
 
 
 if __name__ == "__main__":

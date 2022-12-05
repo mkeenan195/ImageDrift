@@ -1,4 +1,3 @@
-
 from style_transfer import create_style_augmented_images
 import os
 import pandas as pd
@@ -8,7 +7,7 @@ import matplotlib.dates as mdates
 from datetime import datetime
 import shutil
 
-DATASET_DIR = 'datasets'
+DATASET_DIR = '/scratch_tmp/mpk9358/datasets'
 
 def get_hour(name):
     if "clip" in name:
@@ -68,20 +67,20 @@ filenames["date_dup"] = (
 
 
 # Rename every image to its datetime
-os.mkdir(os.path.join(DATASET_DIR, 'renamed'))
-os.mkdir(os.path.join(DATASET_DIR, 'renamed','images'))
-os.mkdir(os.path.join(DATASET_DIR, 'renamed','labels'))
-for i, row in filenames.iterrows():
-    old_image = row["image_name"] + ".jpg"
-    new_image = row["date_dup"].replace("-", "") + ".jpg"
-    old_fp = os.path.join(DATASET_DIR, "thermal/images/", old_image)
-    new_fp = os.path.join(DATASET_DIR, "renamed/images/", new_image)
-    shutil.copy(old_fp, new_fp)
-    old_label = row["image_name"] + ".txt"
-    new_label = row["date_dup"].replace("-", "") + ".txt"
-    old_fp = os.path.join(DATASET_DIR, "thermal/labels/", old_label)
-    new_fp = os.path.join(DATASET_DIR, "renamed/labels/", new_label)
-    shutil.copy(old_fp, new_fp)
+# os.mkdir(os.path.join(DATASET_DIR, 'renamed'))
+# os.mkdir(os.path.join(DATASET_DIR, 'renamed','images'))
+# os.mkdir(os.path.join(DATASET_DIR, 'renamed','labels'))
+# for i, row in filenames.iterrows():
+#     old_image = row["image_name"] + ".jpg"
+#     new_image = row["date_dup"].replace("-", "") + ".jpg"
+#     old_fp = os.path.join(DATASET_DIR, "thermal/images/", old_image)
+#     new_fp = os.path.join(DATASET_DIR, "renamed/images/", new_image)
+#     shutil.copy(old_fp, new_fp)
+#     old_label = row["image_name"] + ".txt"
+#     new_label = row["date_dup"].replace("-", "") + ".txt"
+#     old_fp = os.path.join(DATASET_DIR, "thermal/labels/", old_label)
+#     new_fp = os.path.join(DATASET_DIR, "renamed/labels/", new_label)
+#     shutil.copy(old_fp, new_fp)
 
 
 
@@ -149,7 +148,7 @@ for month in ["march", "april", "august"]:
         dataset_dir[month]["style_assignments"][style_img].append(content_img)
 
 
-for month in ["march", "april", "august"]:
+for month in ["august"]: #["march", "april", "august"]:
     os.path.join(DATASET_DIR, month)
     os.mkdir(os.path.join(DATASET_DIR, month))
     os.mkdir(os.path.join(DATASET_DIR, month, "train"))
@@ -168,7 +167,7 @@ for month in ["march", "april", "august"]:
             content_img_names=content_img_names,
             image_dir=os.path.join(DATASET_DIR, 'renamed', "images"),
             output_dir=os.path.join(DATASET_DIR, month, "train", "images"),
-            num_steps=200,
+            num_steps=300,
             content_weight=10
         )
     # Add in unstylized images to train set
