@@ -7,7 +7,8 @@ import matplotlib.dates as mdates
 from datetime import datetime
 import shutil
 
-DATASET_DIR = '/scratch_tmp/mpk9358/datasets'
+DATASET_DIR = '/home/mpk9358/ImageDrift/datasets_highstyle'
+CONTENT_WEIGHT = 1
 
 def get_hour(name):
     if "clip" in name:
@@ -67,20 +68,20 @@ filenames["date_dup"] = (
 
 
 # Rename every image to its datetime
-# os.mkdir(os.path.join(DATASET_DIR, 'renamed'))
-# os.mkdir(os.path.join(DATASET_DIR, 'renamed','images'))
-# os.mkdir(os.path.join(DATASET_DIR, 'renamed','labels'))
-# for i, row in filenames.iterrows():
-#     old_image = row["image_name"] + ".jpg"
-#     new_image = row["date_dup"].replace("-", "") + ".jpg"
-#     old_fp = os.path.join(DATASET_DIR, "thermal/images/", old_image)
-#     new_fp = os.path.join(DATASET_DIR, "renamed/images/", new_image)
-#     shutil.copy(old_fp, new_fp)
-#     old_label = row["image_name"] + ".txt"
-#     new_label = row["date_dup"].replace("-", "") + ".txt"
-#     old_fp = os.path.join(DATASET_DIR, "thermal/labels/", old_label)
-#     new_fp = os.path.join(DATASET_DIR, "renamed/labels/", new_label)
-#     shutil.copy(old_fp, new_fp)
+os.mkdir(os.path.join(DATASET_DIR, 'renamed'))
+os.mkdir(os.path.join(DATASET_DIR, 'renamed','images'))
+os.mkdir(os.path.join(DATASET_DIR, 'renamed','labels'))
+for i, row in filenames.iterrows():
+    old_image = row["image_name"] + ".jpg"
+    new_image = row["date_dup"].replace("-", "") + ".jpg"
+    old_fp = os.path.join(DATASET_DIR, "thermal/images/", old_image)
+    new_fp = os.path.join(DATASET_DIR, "renamed/images/", new_image)
+    shutil.copy(old_fp, new_fp)
+    old_label = row["image_name"] + ".txt"
+    new_label = row["date_dup"].replace("-", "") + ".txt"
+    old_fp = os.path.join(DATASET_DIR, "thermal/labels/", old_label)
+    new_fp = os.path.join(DATASET_DIR, "renamed/labels/", new_label)
+    shutil.copy(old_fp, new_fp)
 
 
 
@@ -148,7 +149,7 @@ for month in ["march", "april", "august"]:
         dataset_dir[month]["style_assignments"][style_img].append(content_img)
 
 
-for month in ["august"]: #["march", "april", "august"]:
+for month in ["march", "april", "august"]:
     os.path.join(DATASET_DIR, month)
     os.mkdir(os.path.join(DATASET_DIR, month))
     os.mkdir(os.path.join(DATASET_DIR, month, "train"))
@@ -168,7 +169,7 @@ for month in ["august"]: #["march", "april", "august"]:
             image_dir=os.path.join(DATASET_DIR, 'renamed', "images"),
             output_dir=os.path.join(DATASET_DIR, month, "train", "images"),
             num_steps=300,
-            content_weight=10
+            content_weight=CONTENT_WEIGHT
         )
     # Add in unstylized images to train set
     unstylized_img_names = [
@@ -197,6 +198,7 @@ for month in ["august"]: #["march", "april", "august"]:
 for month in ["march", "april", "august"]:
     for split in ['train','test']:
         img_names = os.listdir(os.path.join(DATASET_DIR, month, split,'images'))
+        img_names = [x for x in img_names if x[0]!='.']
         for img in img_names:
             name = img.split('.')[0]
             old_fp = os.path.join(DATASET_DIR, "renamed", "labels", name+'.txt')
@@ -205,6 +207,7 @@ for month in ["march", "april", "august"]:
     
 # Create baseline datasets
 image_names = os.listdir(os.path.join(DATASET_DIR, 'renamed', 'images'))
+image_names = [x for x in image_names if x[0]!='.']
 for month in ["march", "april", "august"]:
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized'))
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'train'))
@@ -217,7 +220,7 @@ for month in ["march", "april", "august"]:
     content_end_date = dataset_dir[month]["content_end_date"]
     test_start, test_end = dataset_dir[month]["test_dates"]
     # Train dataset
-    train_names = [x.split('.')[0] for x in image_names if x.split('.')[0] < dataset_end_date]
+    train_names = [x.split('.')[0] for x in image_names if (x.split('.')[0] < dataset_end_date)]
     for name in train_names:
         old_fp = os.path.join(DATASET_DIR, "renamed", "images", name+'.jpg')
         new_fp = os.path.join(DATASET_DIR,month+'_unstylized','train','images', name+'.jpg')
