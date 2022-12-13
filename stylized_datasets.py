@@ -7,8 +7,8 @@ import matplotlib.dates as mdates
 from datetime import datetime
 import shutil
 
-DATASET_DIR = '/home/mpk9358/ImageDrift/datasets_highstyle'
-CONTENT_WEIGHT = 1
+DATASET_DIR = '/home/mpk9358/ImageDrift/datasets'
+CONTENT_WEIGHT = 10
 
 def get_hour(name):
     if "clip" in name:
@@ -89,21 +89,33 @@ for i, row in filenames.iterrows():
 image_names = os.listdir(os.path.join(DATASET_DIR, 'renamed', 'images'))
 dataset_dir = {}
 dataset_dir["march"] = {
+    "content_start_date": "202001000000",
     "content_end_date": "202002190000",
-    "dataset_end_date": "202003000000",
+    "style_start_date": "202002190000",
+    "style_end_date": "202003000000",
     "test_dates": ("202003000000", "202004000000")
 }
 dataset_dir["april"] = {
+    "content_start_date": "202001000000",
     "content_end_date": "202003050000",
-    "dataset_end_date": "202004000000",
+    "style_start_date": "202003050000",
+    "style_end_date": "202004000000",
     "test_dates": ("202004000000", "202005000000")
 }
 dataset_dir["august"] = {
+    "content_start_date": "202001000000",
     "content_end_date": "202004200000",
-    "dataset_end_date": "202008000000",
+    "style_start_date": "202004200000",
+    "style_end_date": "202008000000",
     "test_dates": ("202008000000", "202009000000")
 }
-
+dataset_dir["january"] = {
+    "content_start_date": "202008000000",
+    "content_end_date": "202009000000",
+    "style_start_date": "202001000000",
+    "style_end_date": "202001110000",
+    "test_dates": ("202001110000", "202002000000")
+}
 
 
 def candidate_style_imgs(filenames, start_date, end_date):
@@ -132,24 +144,24 @@ def assign_style_img(content_img, candidate_df):
 
 
 # Assign a style image to each content images
-for month in ["march", "april", "august"]:
+for month in ["march", "april", "august", "january"]:
     dataset_dir[month]["style_assignments"] = {}
     candidate_df = candidate_style_imgs(
         filenames,
-        start_date=dataset_dir[month]["content_end_date"],
-        end_date=dataset_dir[month]["dataset_end_date"],
+        start_date=dataset_dir[month]["style_start_date"],
+        end_date=dataset_dir[month]["style_end_date"],
     )
     for content_img in image_names:
         content_img = content_img.split('.')[0]
-        if content_img > dataset_dir[month]["content_end_date"]:
-            continue
+        if (content_img < dataset_dir[month]["content_start_date"]) or (content_img > dataset_dir[month]["content_end_date"]):
+            continue    
         style_img = assign_style_img(content_img, candidate_df)
         if style_img not in dataset_dir[month]["style_assignments"]:
             dataset_dir[month]["style_assignments"][style_img] = []
         dataset_dir[month]["style_assignments"][style_img].append(content_img)
 
 
-for month in ["march", "april", "august"]:
+for month in ["march", "april", "august", "january"]:
     os.path.join(DATASET_DIR, month)
     os.mkdir(os.path.join(DATASET_DIR, month))
     os.mkdir(os.path.join(DATASET_DIR, month, "train"))
@@ -158,8 +170,8 @@ for month in ["march", "april", "august"]:
     os.mkdir(os.path.join(DATASET_DIR, month, "train", "labels"))
     os.mkdir(os.path.join(DATASET_DIR, month, "test", "images"))
     os.mkdir(os.path.join(DATASET_DIR, month, "test", "labels"))
-    dataset_end_date = dataset_dir[month]["dataset_end_date"]
-    content_end_date = dataset_dir[month]["content_end_date"]
+    style_start_date = dataset_dir[month]["style_start_date"]
+    style_end_date = dataset_dir[month]["style_end_date"]
     test_start, test_end = dataset_dir[month]["test_dates"]
     # Add stylized images to train set
     for style_img_name, content_img_names in dataset_dir[month]["style_assignments"].items():
@@ -175,8 +187,8 @@ for month in ["march", "april", "august"]:
     unstylized_img_names = [
         x.split(".")[0]
         for x in image_names
-        if (x.split(".")[0] >= content_end_date)
-        and (x.split(".")[0] < dataset_end_date)
+        if (x.split(".")[0] >= style_start_date)
+        and (x.split(".")[0] < style_end_date)
     ]
     for img in unstylized_img_names:
         old_fp = os.path.join(DATASET_DIR, "renamed", "images", img+'.jpg')
@@ -195,7 +207,7 @@ for month in ["march", "april", "august"]:
         shutil.copy(old_fp, new_fp)
 
 # Add labels
-for month in ["march", "april", "august"]:
+for month in ["march", "april", "august", "january"]:
     for split in ['train','test']:
         img_names = os.listdir(os.path.join(DATASET_DIR, month, split,'images'))
         img_names = [x for x in img_names if x[0]!='.']
@@ -208,7 +220,7 @@ for month in ["march", "april", "august"]:
 # Create baseline datasets
 image_names = os.listdir(os.path.join(DATASET_DIR, 'renamed', 'images'))
 image_names = [x for x in image_names if x[0]!='.']
-for month in ["march", "april", "august"]:
+for month in ["march", "april", "august", "january"]:
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized'))
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'train'))
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'test'))
@@ -216,11 +228,9 @@ for month in ["march", "april", "august"]:
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'train', 'labels'))
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'test', 'images'))
     os.mkdir(os.path.join(DATASET_DIR, month+'_unstylized', 'test', 'labels'))
-    dataset_end_date = dataset_dir[month]["dataset_end_date"]
-    content_end_date = dataset_dir[month]["content_end_date"]
-    test_start, test_end = dataset_dir[month]["test_dates"]
     # Train dataset
-    train_names = [x.split('.')[0] for x in image_names if (x.split('.')[0] < dataset_end_date)]
+    train_names = os.listdir(os.path.join(DATASET_DIR, month, 'train', 'images'))
+    train_names = [x.split('.')[0] for x in train_names if x[0]!='.']
     for name in train_names:
         old_fp = os.path.join(DATASET_DIR, "renamed", "images", name+'.jpg')
         new_fp = os.path.join(DATASET_DIR,month+'_unstylized','train','images', name+'.jpg')
@@ -228,7 +238,8 @@ for month in ["march", "april", "august"]:
         old_fp = os.path.join(DATASET_DIR, "renamed", "labels", name+'.txt')
         new_fp = os.path.join(DATASET_DIR,month+'_unstylized','train','labels', name+'.txt')
         shutil.copy(old_fp, new_fp)  
-    test_names = [x.split('.')[0] for x in image_names if (x.split('.')[0] >= test_start) and (x.split('.')[0] < test_end)]
+    test_names = os.listdir(os.path.join(DATASET_DIR, month, 'test', 'images'))
+    test_names = [x.split('.')[0] for x in test_names if x[0]!='.']
     for name in test_names:
         old_fp = os.path.join(DATASET_DIR, "renamed", "images", name+'.jpg')
         new_fp = os.path.join(DATASET_DIR,month+'_unstylized','test','images', name+'.jpg')
