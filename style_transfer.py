@@ -270,7 +270,7 @@ def create_style_augmented_images(
             style_weight=style_weight,
             content_weight=content_weight,
         )
-        if content_score > 200:
+        if content_score > 250:
             output_img = get_image(dataset, img_name=content_img_name)
         output_fp = os.path.join(output_dir, content_img_name + ".jpg")
         save_image(output_img[0], fp=output_fp)
