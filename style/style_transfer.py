@@ -9,10 +9,9 @@ import torchvision.models as models
 from torchvision.utils import save_image
 from PIL import Image
 import matplotlib.pyplot as plt
-from dataloader import ImagingDataset
 import os
-from utils import plot_image_set
-
+from .dataloader import ImagingDataset
+from .utils import plot_image_set
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
