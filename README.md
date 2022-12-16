@@ -1,4 +1,5 @@
 # Mitigating Covariate Shift with Style Transfer
+Shuvadeep Saha, Martin Keenan
 
 ## Resources
 
@@ -7,7 +8,32 @@
 - [Long-term Thermal Drift Dataset](https://www.kaggle.com/datasets/ivannikolov/longterm-thermal-drift-dataset) published by [Nikolov et al.](https://openreview.net/forum?id=LjjqegBNtPi).
 
 ## Project Description
+In goal of this project is to experiment with methods for training object detection models that are robust to data drift. We use the Long-term Thermal Drift Dataset, which is dataset collected across five months from an outdoor thermal-imaging camera mounted on the outside of a building. The dataset includes 651 images annotated with bounding boxes on pedestrians.
 
+Our hypothesis is that using neural style transfer to make older training images look more similar to images taken just before the evaluation period will improve our model's performance. In our experiment we consider three scenarios, shown below, in which we train a model to evaluate on March, April, and August data. (The dataset does not include data for May, June, and July.) In each scenario the training set consists of all images taken during previous months. This simulates a real-world situation where one would only have access to images captured since the camera was deployed.
+
+<p align="center">
+<img src=".github/scenarios.png" width=50% height=100% 
+class="center">
+</p>
+
+For each scenario, we create a new "stylized" training set. Images from the last ten days of training data are designated as style images and the rest as content images. We apply style to each of the content images by matching each to the style image taken at the closest time-of-day, then apply the neural style transfer algorithm.
+<p align="center">
+<img src=".github/style_transfer_white.png" width=40% height=100% 
+class="center">
+</p>
+
+The figure below shows an example of style transfer from Scenario 2. A style image from the end of March is matched to a content image from February. After style transfer, the new image replaces the February image in the stylized training set.
+<p align="center">
+<img src=".github/style_example.png" width=70% height=100% 
+class="center">
+</p>
+
+To evaluate whether our methodology adds any value to the model, we then finetune two YOLOv5 pretrained object detection models. The first is trained on the original training set and serves as a baseline. The second is trained on the new stylized training set. We then compare the two models on the same test dataset that includes images from one month after the latest training image.
+<p align="center">
+<img src=".github/experiment_evaluation_white.png" width=50% height=100% 
+class="center">
+</p>
 
 ## Repository Description
 The code can be divided into two stages: style transfer and object detection. 
