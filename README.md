@@ -40,6 +40,7 @@ The code can be divided into two stages: style transfer and object detection.
 
 The file [stylized_datasets.py](stylized_datasets.py) creates the baseline and style-augmented datasets used for training object detection models. The code for implementing the neural style transfer algorithm is in the [style](style) directory. Examples of the style-augmented datasets are in [datasets](datasets) and [datasets_highstyle](datasets_highstyle).
 
+The directory [yolov5s](yolov5s) contains code for the YOLOv5 object detection model. The commands in [main.ipynb](main.ipynb) train the YOLOv5 model and save the results for the datasets present in [datastes](datasets) and [datasets_highstyle](datasets_highstyle).
 
 ## Instructions
 
@@ -67,14 +68,13 @@ Lastly for testing the model on any custom image, video, etc, specify the path o
 ```
 
 ## Results
-The results of all the runs, are stored in `yolov5s/runs`: 
-The performance on the baseline (unstylized) images are shown below:
+The results of all the runs, are stored in `yolov5s/runs`. The performance on the baseline (unstylized) images are shown below. The first set of three bars show the mean average precision on March, April, and August of a model trained on January and February images. The decrease in performance as the model is evaluated on images captured later and later in the year indicates the presence of drift. Also, as we include more images that are closer in date to the test images, the performance of the model increases. This is shown by the increasing orange and green bars.
 <p align="center">
 <img src=".github/performance on the baseline.png" width=50% height=100% 
 class="center">
 </p>
 
-The performance of the stylized images and the comparison with the baseline is shown below:
+The performance of the stylized images and the comparison with the baseline is shown below. The difference between the model trained on the stylized dataset and baseline dataset was zero when test on March images, positive on April images, and negative on August images. This indicates there is evidence our approach can be useful but warrants further investigation on other datasets.
 <p align="center">
 <img src=".github/Performance on the stylized images.png" width=50% height=100% 
 class="center">
