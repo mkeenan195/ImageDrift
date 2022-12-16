@@ -83,7 +83,7 @@ for i, row in filenames.iterrows():
     shutil.copy(old_fp, new_fp)
 
 
-# Set the months to train a model on
+# Set the dates for each dataset: windows for content images, style images, and test images
 image_names = os.listdir(os.path.join(args.datadir, "renamed", "images"))
 dataset_dir = {}
 dataset_dir["march"] = {

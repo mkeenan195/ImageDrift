@@ -22,19 +22,6 @@ def get_image(dataset, img_name="202002261456-9of48-f3600"):
     return img
 
 
-# def plot_image(img, title=None, output_file="output.jpg"):
-#     if len(img.shape) == 4:
-#         img = img[0]
-#     img = img.permute(1, 2, 0).detach().cpu().numpy()
-#     fig, ax = plt.subplots()
-#     ax.imshow(img, cmap="gray", vmin=0, vmax=1)
-#     ax.set_xticks([])
-#     ax.set_yticks([])
-#     if title:
-#         ax.set_title(title)
-#     plt.savefig(output_file)
-
-
 class ContentLoss(nn.Module):
     def __init__(
         self,
@@ -243,6 +230,9 @@ def create_style_augmented_images(
     style_weight=1000000,
     content_weight=1,
 ):
+    '''
+    Save style transfer images from input of a single style image and a list of content images.
+    '''
     dataset = ImagingDataset(
         image_dir, start_date="0101", end_date="1231", transform=None
     )
@@ -278,15 +268,3 @@ def create_style_augmented_images(
         plot_image_set(renamed_dir, month_dir, content_img_name, style_img_name, content_img_name)
 
 
-
-if __name__ == "__main__":
-
-    style_img_name = "20200814_clip_16_0703_img_115"
-    content_img_names = ["20210110_clip_28_1230_img_5", "20200810_clip_11_1452_img_115"]
-    create_style_augmented_images(
-        style_img_name=style_img_name,
-        content_img_names=content_img_names,
-        image_dir="datasets/thermal/images",
-        output_dir="temp",
-        num_steps=200,
-    )
