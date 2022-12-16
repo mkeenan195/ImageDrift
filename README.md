@@ -51,9 +51,34 @@ python style_transfer.py --datadir <PATH_TO_DATASET_DIRECTORY> --content_weight 
 The `content_weight` option controls the degree of style added to content images by changing the weight of the content loss. For the low-style experiments we set `content_weight` equal to 10 and for the high-style experiments we set it equal to 1.
 
 ### Object Detection
-
+To run object detection, first run the [main.ipynb](main.ipynb). The relative directory path of the `train.py` file must be specified and is present in `yolov5s/train.py`. For more information on the type of arguments that can be passed, one can refer to the file train.py. The next step is to specift the relative path for the config file which contains the train/val/test dataset directories and the number of classes we are dealing with. The data folder is located at `yolov5s/data`. All the yaml conig files must be stored in this directory. Below shows an example on train/val/test on a March unstylized images dataset.
+```
+!python yolov5s/train.py --img 288 --batch 128 --epochs 250 --data detect-drift-March-un.yaml --weights yolov5s.pt --cache
+```
+Similarly for validation, specify the relative path to the saved weights and the same data file path as used during training.
+```
+!python yolov5s/val.py --weights yolov5s/runs/train/detect-drift-March-un-train/weights/best.pt \
+--data yolov5s/data/detect-drift-March-un.yaml --img 288
+```
+Lastly for testing the model on any custom image, video, etc, specify the path of the image/video/etc file for detection:
+```
+!python yolov5s/detect.py --weights yolov5s/runs/train/April/weights/best.pt \
+--conf-thres 0.5 --line-thickness 2 --hide-conf --source test-vid-2.mp4
+```
 
 ## Results
+The results of all the runs, are stored in `yolov5s/runs`: 
+The performance on the baseline (unstylized) images are shown below:
+<p align="center">
+<img src=".github/performance on the baseline.png" width=50% height=100% 
+class="center">
+</p>
+
+The performance of the stylized images and the comparison with the baseline is shown below:
+<p align="center">
+<img src=".github/Performance on the stylized images.png" width=50% height=100% 
+class="center">
+</p>
 
 ## References
 
